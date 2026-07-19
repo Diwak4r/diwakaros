@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[890],{5890:(l,e,a)=>{a.r(e),a.d(e,{default:()=>s});var r=a(5155);function s(){return(0,r.jsx)("iframe",{src:"/games/craftjs/index.html",title:"CraftJS",className:"h-full w-full border-0 bg-black",allow:"pointer-lock; fullscreen; autoplay"})}}}]);

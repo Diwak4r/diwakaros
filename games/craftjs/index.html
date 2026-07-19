@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CraftJS — Minecraft Clone</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="loading">
+    <div class="loading-inner">
+      <h1>CraftJS</h1>
+      <p class="sub">A Minecraft-style voxel world</p>
+      <div class="bar"><div id="load-fill"></div></div>
+      <p id="load-text">Generating world…</p>
+    </div>
+  </div>
+
+  <div id="menu" class="hidden">
+    <div class="menu-panel">
+      <h1>CraftJS</h1>
+      <p class="tagline">Mine · Craft · Explore</p>
+      <button id="btn-play" class="mc-btn">Play Game</button>
+      <div class="controls-help">
+        <h3>Controls</h3>
+        <ul>
+          <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</li>
+          <li><kbd>Space</kbd> Jump · <kbd>Shift</kbd> Crouch · <kbd>Ctrl</kbd> Sprint</li>
+          <li><kbd>LMB</kbd> Break · <kbd>RMB</kbd> Place · <kbd>MMB</kbd> Pick</li>
+          <li><kbd>1</kbd>–<kbd>9</kbd> Hotbar · Scroll select</li>
+          <li><kbd>E</kbd> Inventory · <kbd>F</kbd> Fly · <kbd>F3</kbd> Debug</li>
+          <li><kbd>Esc</kbd> Pause / release mouse</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="pause" class="hidden">
+    <div class="menu-panel">
+      <h2>Game Paused</h2>
+      <button id="btn-resume" class="mc-btn">Back to Game</button>
+      <button id="btn-menu" class="mc-btn secondary">Main Menu</button>
+    </div>
+  </div>
+
+  <div id="hud" class="hidden">
+    <div id="crosshair"></div>
+    <div id="break-overlay"></div>
+
+    <div id="debug" class="hidden">
+      <pre id="debug-text"></pre>
+    </div>
+
+    <div id="hotbar">
+      <div class="hotbar-slots" id="hotbar-slots"></div>
+    </div>
+
+    <div id="xp-bar">
+      <div id="xp-fill"></div>
+      <span id="xp-level">0</span>
+    </div>
+
+    <div id="health-hunger">
+      <div id="hearts"></div>
+      <div id="food"></div>
+    </div>
+
+    <div id="held-name"></div>
+  </div>
+
+  <div id="inventory-screen" class="hidden">
+    <div class="inv-panel">
+      <h2>Inventory</h2>
+      <div class="inv-grid" id="inv-grid"></div>
+      <div class="inv-hotbar-row" id="inv-hotbar-row"></div>
+      <p class="inv-hint">Click a slot, then click another to swap · Esc / E to close</p>
+    </div>
+  </div>
+
+  <canvas id="game"></canvas>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js"
+    }
+  }
+  </script>
+  <script type="module">
+    // Surface load errors on the loading screen instead of a blank page
+    window.addEventListener("error", (e) => {
+      const el = document.getElementById("load-text");
+      if (el) el.textContent = "Error: " + (e.message || "failed to load");
+      console.error(e.error || e.message);
+    });
+    window.addEventListener("unhandledrejection", (e) => {
+      const el = document.getElementById("load-text");
+      if (el) el.textContent = "Error: " + (e.reason?.message || e.reason || "promise failed");
+      console.error(e.reason);
+    });
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
