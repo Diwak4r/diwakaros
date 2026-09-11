@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,2867,l=>{"use strict";var t=l.i(43476);l.s(["default",0,function(){return(0,t.jsx)("iframe",{src:"/games/craftjs/index.html",title:"CraftJS",className:"h-full w-full border-0 bg-black",allow:"pointer-lock; fullscreen; autoplay"})}])}]);
