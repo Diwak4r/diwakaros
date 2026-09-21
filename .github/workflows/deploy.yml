@@ -1,0 +1,49 @@
+name: Deploy DiwakarOS from source
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/deploy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deployment repository
+        uses: actions/checkout@v5
+        with:
+          path: deploy
+      - name: Checkout portfolio source
+        uses: actions/checkout@v5
+        with:
+          repository: Diwak4r/Diwak4r
+          ref: main
+          path: source
+      - name: Build DiwakarOS
+        working-directory: source/portfolio-os
+        run: |
+          npm ci
+          npm run build
+      - name: Publish static export
+        run: |
+          rsync -a --delete \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=README.md \
+            source/portfolio-os/out/ deploy/
+          touch deploy/.nojekyll
+          cd deploy
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No deployment changes"
+          else
+            git commit -m "Deploy current portfolio-os build"
+            git push
+          fi
