@@ -9,6 +9,9 @@ import { AIR, BlockID, isSolid } from "./blocks.js";
 
 export const SEA_LEVEL = 42;
 export const RENDER_DISTANCE = 5;
+/** New chunks generated per updateChunks call. Generating every missing chunk
+ *  in one frame was the big hitch right after the game started. */
+const GEN_BUDGET = 1;
 
 const BIOME = {
   OCEAN: 0,
@@ -338,20 +341,25 @@ export class World {
     const pcz = Math.floor(playerZ / CHUNK_D);
     const rd = RENDER_DISTANCE;
 
-    // Load
+    // Load, nearest first, a few chunks per call
     const needed = new Set();
+    const missing = [];
     for (let dz = -rd; dz <= rd; dz++) {
       for (let dx = -rd; dx <= rd; dx++) {
         // circular-ish
-        if (dx * dx + dz * dz > (rd + 0.5) * (rd + 0.5)) continue;
+        const d2 = dx * dx + dz * dz;
+        if (d2 > (rd + 0.5) * (rd + 0.5)) continue;
         const cx = pcx + dx;
         const cz = pcz + dz;
-        needed.add(this.chunkKey(cx, cz));
-        if (!this.chunks.has(this.chunkKey(cx, cz))) {
-          this.generateChunk(cx, cz);
-          if (onProgress) onProgress();
-        }
+        const key = this.chunkKey(cx, cz);
+        needed.add(key);
+        if (!this.chunks.has(key)) missing.push({ cx, cz, d2 });
       }
+    }
+    missing.sort((a, b) => a.d2 - b.d2);
+    for (let i = 0; i < Math.min(GEN_BUDGET, missing.length); i++) {
+      this.generateChunk(missing[i].cx, missing[i].cz);
+      if (onProgress) onProgress();
     }
 
     // Unload far chunks
@@ -363,10 +371,20 @@ export class World {
       }
     }
 
-    // Rebuild dirty meshes
+  }
+
+  /**
+   * Rebuild at most `budget` dirty chunk meshes. Called every frame, so a
+   * block edit shows on the next frame and new chunks never pile up into one
+   * long rebuild.
+   */
+  rebuildDirty(budget) {
+    let left = budget;
     for (const chunk of this.chunks.values()) {
+      if (left <= 0) break;
       if (chunk.dirty) {
         chunk.buildMesh(this.atlas);
+        left--;
       }
     }
   }

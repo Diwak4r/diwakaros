@@ -26,7 +26,8 @@ const renderer = new THREE.WebGLRenderer({
   antialias: false,
   powerPreference: "high-performance",
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// 1.5 is sharp on HiDPI screens and far cheaper than 2x for a voxel scene.
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x87ceeb);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -422,17 +423,13 @@ function updateDayNight(dt) {
   const dayFactor = Math.max(0, Math.min(1, elev * 1.2 + 0.15));
   const nightFactor = 1 - dayFactor;
 
-  const skyDay = new THREE.Color(0x87ceeb);
-  const skySunset = new THREE.Color(0xff8c4a);
-  const skyNight = new THREE.Color(0x0a0a1e);
-
-  let sky = skyDay.clone();
+  const sky = SKY_SCRATCH.copy(SKY_DAY);
   if (elev > -0.15 && elev < 0.25) {
     // sunrise/sunset blend
     const t = 1 - Math.abs(elev - 0.05) / 0.3;
-    sky.lerp(skySunset, Math.max(0, t) * 0.7);
+    sky.lerp(SKY_SUNSET, Math.max(0, t) * 0.7);
   }
-  sky.lerp(skyNight, nightFactor);
+  sky.lerp(SKY_NIGHT, nightFactor);
 
   scene.background.copy(sky);
   scene.fog.color.copy(sky);
@@ -448,6 +445,12 @@ function updateDayNight(dt) {
 
   // Dim solid material at night via ambient — already handled by lights
 }
+
+// Sky colours, allocated once instead of every frame
+const SKY_DAY = new THREE.Color(0x87ceeb);
+const SKY_SUNSET = new THREE.Color(0xff8c4a);
+const SKY_NIGHT = new THREE.Color(0x0a0a1e);
+const SKY_SCRATCH = new THREE.Color();
 
 // ── Main loop ──
 function loop(now) {
@@ -471,9 +474,10 @@ function loop(now) {
     // Chunk streaming
     chunkUpdateTimer -= dt;
     if (chunkUpdateTimer <= 0) {
-      chunkUpdateTimer = 0.35;
+      chunkUpdateTimer = 0.1;
       world.updateChunks(player.position.x, player.position.z);
     }
+    world.rebuildDirty(1);
 
     // Mining
     const hit = player.getReachRay();
